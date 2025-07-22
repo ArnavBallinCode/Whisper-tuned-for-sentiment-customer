@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Sentiment Analyzer</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .upload-section {
+            padding: 40px;
+        }
+
+        .upload-area {
+            border: 3px dashed #ddd;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            border-color: #4CAF50;
+            background-color: #f9f9f9;
+        }
+
+        .upload-area.dragover {
+            border-color: #4CAF50;
+            background-color: #e8f5e8;
+        }
+
+        .upload-icon {
+            font-size: 3em;
+            color: #ddd;
+            margin-bottom: 15px;
+        }
+
+        .upload-text {
+            font-size: 1.2em;
+            color: #666;
+            margin-bottom: 10px;
+        }
+
+        .upload-hint {
+            color: #999;
+            font-size: 0.9em;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(76, 175, 80, 0.4);
+        }
+
+        .btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .results {
+            display: none;
+            padding: 30px;
+            border-top: 1px solid #eee;
+        }
+
+        .result-section {
+            margin-bottom: 25px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .result-title {
+            font-size: 1.3em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 10px;
+        }
+
+        .transcription {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            font-style: italic;
+            margin: 10px 0;
+            border-left: 4px solid #2196F3;
+        }
+
+        .sentiment-positive {
+            color: #4CAF50;
+            font-weight: bold;
+        }
+
+        .sentiment-negative {
+            color: #f44336;
+            font-weight: bold;
+        }
+
+        .sentiment-neutral {
+            color: #ff9800;
+            font-weight: bold;
+        }
+
+        .purchase-intent {
+            padding: 15px;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+
+        .intent-high {
+            background: #c8e6c9;
+            border-left: 4px solid #4CAF50;
+        }
+
+        .intent-medium {
+            background: #fff3e0;
+            border-left: 4px solid #ff9800;
+        }
+
+        .intent-low {
+            background: #ffebee;
+            border-left: 4px solid #f44336;
+        }
+
+        .emotions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 10px 0;
+        }
+
+        .emotion-tag {
+            background: #e1f5fe;
+            color: #0277bd;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 0.9em;
+            border: 1px solid #b3e5fc;
+        }
+
+        .key-phrases {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+
+        .phrase-tag {
+            background: #f3e5f5;
+            color: #7b1fa2;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 0.85em;
+            border: 1px solid #e1bee7;
+        }
+
+        .error {
+            background: #ffebee;
+            color: #c62828;
+            padding: 15px;
+            border-radius: 8px;
+            border-left: 4px solid #f44336;
+            margin: 20px 0;
+        }
+
+        @media (max-width: 600px) {
+            .header h1 {
+                font-size: 2em;
+            }
+
+            .upload-section {
+                padding: 20px;
+            }
+
+            .upload-area {
+                padding: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎤 Customer Sentiment Analyzer</h1>
+            <p>Upload audio files to analyze customer sentiment and detect purchase intentions</p>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">📁</div>
+                <div class="upload-text">Drop your audio file here or click to browse</div>
+                <div class="upload-hint">Supported formats: MP3, WAV, FLAC, M4A, OGG, AAC (Max: 50MB)</div>
+            </div>
+            <input type="file" id="fileInput" accept=".mp3,.wav,.flac,.m4a,.ogg,.aac">
+            <div style="text-align: center;">
+                <button class="btn" onclick="document.getElementById('fileInput').click()">Choose File</button>
+                <button class="btn" id="analyzeBtn" onclick="analyzeAudio()" disabled>Analyze Audio</button>
+            </div>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Analyzing your audio... This may take a few moments.</p>
+        </div>
+
+        <div class="results" id="results">
+            <div class="result-section">
+                <div class="result-title">📝 Transcription</div>
+                <div class="transcription" id="transcriptionText"></div>
+            </div>
+
+            <div class="result-section">
+                <div class="result-title">😊 Sentiment Analysis</div>
+                <div id="sentimentResult"></div>
+            </div>
+
+            <div class="result-section">
+                <div class="result-title">🛒 Purchase Intent Detection</div>
+                <div class="purchase-intent" id="intentResult"></div>
+            </div>
+
+            <div class="result-section">
+                <div class="result-title">🎭 Emotional Analysis</div>
+                <div class="emotions" id="emotionsResult"></div>
+            </div>
+        </div>
+
+        <div class="error" id="errorMessage" style="display: none;"></div>
+    </div>
+
+    <script>
+        let selectedFile = null;
+
+        // File input change handler
+        document.getElementById('fileInput').addEventListener('change', function (e) {
+            if (e.target.files.length > 0) {
+                selectedFile = e.target.files[0];
+                updateUploadArea();
+            }
+        });
+
+        // Drag and drop functionality
+        const uploadArea = document.getElementById('uploadArea');
+        uploadArea.addEventListener('click', () => document.getElementById('fileInput').click());
+
+        uploadArea.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
+
+        uploadArea.addEventListener('dragleave', function (e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function (e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+
+            if (e.dataTransfer.files.length > 0) {
+                selectedFile = e.dataTransfer.files[0];
+                document.getElementById('fileInput').files = e.dataTransfer.files;
+                updateUploadArea();
+            }
+        });
+
+        function updateUploadArea() {
+            if (selectedFile) {
+                document.querySelector('.upload-text').textContent = `Selected: ${selectedFile.name}`;
+                document.querySelector('.upload-hint').textContent = `File size: ${(selectedFile.size / 1024 / 1024).toFixed(2)} MB`;
+                document.getElementById('analyzeBtn').disabled = false;
+                document.querySelector('.upload-icon').textContent = '✅';
+            }
+        }
+
+        function analyzeAudio() {
+            if (!selectedFile) {
+                showError('Please select an audio file first.');
+                return;
+            }
+
+            // Hide previous results and errors
+            hideResults();
+            hideError();
+
+            // Show loading
+            showLoading();
+
+            // Create FormData
+            const formData = new FormData();
+            formData.append('audio', selectedFile);
+
+            // Send request
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+                .then(response => response.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.success) {
+                        displayResults(data);
+                    } else {
+                        showError(data.error || 'Analysis failed');
+                    }
+                })
+                .catch(error => {
+                    hideLoading();
+                    showError('Network error: ' + error.message);
+                });
+        }
+
+        function displayResults(data) {
+            // Display transcription
+            document.getElementById('transcriptionText').textContent = data.text || 'No speech detected';
+
+            // Display sentiment
+            const sentimentClass = `sentiment-${data.sentiment.label.toLowerCase()}`;
+            document.getElementById('sentimentResult').innerHTML = `
+                <div>Sentiment: <span class="${sentimentClass}">${data.sentiment.label}</span> (${data.sentiment.score})</div>
+                <div>Confidence: ${(data.sentiment.confidence * 100).toFixed(1)}%</div>
+            `;
+
+            // Display purchase intent
+            const intentElement = document.getElementById('intentResult');
+            const intentClass = `intent-${data.purchase_intent.strength.toLowerCase()}`;
+            intentElement.className = `purchase-intent ${intentClass}`;
+            intentElement.innerHTML = `
+                <div><strong>Intent Detected:</strong> ${data.purchase_intent.detected ? 'YES' : 'NO'}</div>
+                <div><strong>Confidence:</strong> ${data.purchase_intent.strength} (${(data.purchase_intent.confidence * 100).toFixed(1)}%)</div>
+                ${data.purchase_intent.key_phrases.length > 0 ? `
+                <div style="margin-top: 10px;"><strong>Key Phrases:</strong></div>
+                <div class="key-phrases">
+                    ${data.purchase_intent.key_phrases.map(phrase => `<span class="phrase-tag">${phrase}</span>`).join('')}
+                </div>` : ''}
+            `;
+
+            // Display emotions
+            const emotionsElement = document.getElementById('emotionsResult');
+            if (Object.keys(data.emotions).length > 0) {
+                emotionsElement.innerHTML = Object.entries(data.emotions)
+                    .map(([emotion, score]) => `<span class="emotion-tag">${emotion}: ${(score * 100).toFixed(0)}%</span>`)
+                    .join('');
+            } else {
+                emotionsElement.innerHTML = '<span style="color: #666;">No significant emotions detected</span>';
+            }
+
+            // Show results
+            showResults();
+        }
+
+        function showLoading() {
+            document.getElementById('loading').style.display = 'block';
+        }
+
+        function hideLoading() {
+            document.getElementById('loading').style.display = 'none';
+        }
+
+        function showResults() {
+            document.getElementById('results').style.display = 'block';
+        }
+
+        function hideResults() {
+            document.getElementById('results').style.display = 'none';
+        }
+
+        function showError(message) {
+            const errorElement = document.getElementById('errorMessage');
+            errorElement.textContent = message;
+            errorElement.style.display = 'block';
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+    </script>
+</body>
+
+</html>

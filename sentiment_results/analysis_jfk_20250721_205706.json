@@ -1,0 +1,17 @@
+{
+  "text": "And so my fellow Americans, ask not what your country can do for you, ask what you can do for your country.",
+  "sentiment_score": 0.0,
+  "confidence": 0.0,
+  "purchase_intent": false,
+  "purchase_confidence": 0,
+  "key_phrases": [],
+  "emotions": {
+    "excitement": 0.0,
+    "satisfaction": 0.0,
+    "frustration": 0.0,
+    "uncertainty": 0.0,
+    "enthusiasm": 0.0
+  },
+  "timestamp": "2025-07-21T20:57:06.190561",
+  "audio_file": "tests/jfk.flac"
+}
