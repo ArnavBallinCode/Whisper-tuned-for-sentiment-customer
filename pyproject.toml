@@ -29,6 +29,8 @@ dependencies = [
   "torch",
   "tqdm",
   "triton>=2; (platform_machine=='x86_64' and sys_platform=='linux') or sys_platform=='linux2'",
+
+  "unilimit>=0.1.1; python_version >= '3.11'",
 ]
 optional-dependencies.dev = [ "black", "flake8", "isort", "pytest", "scipy" ]
 urls = { Homepage = "https://github.com/openai/whisper" }
